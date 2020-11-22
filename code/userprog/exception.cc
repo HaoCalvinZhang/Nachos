@@ -131,6 +131,7 @@ ExceptionHandler(ExceptionType which)
             /* set next programm counter for brach execution */
             kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
         }
+        kernel->machine->WriteRegister(2, newPID);
         return ;
         ASSERTNOTREACHED();
     }
@@ -153,6 +154,43 @@ ExceptionHandler(ExceptionType which)
             kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
         }
     
+        return;
+        ASSERTNOTREACHED();
+		}
+		break;
+		
+		
+	case SC_Exec:
+		{   
+	      std::cout<<"Exec. in exception.cc\n";
+	      int address= (int) kernel->machine->ReadRegister(4);
+	      std::cout<<"current address. in exception.cc: "<<address<<"\n";
+	      int size= (int) kernel->machine->ReadRegister(5);
+	     std::cout<<"current size. in exception.cc: "<<size<<"\n";
+             for (int i=0 ; i< size; i++ )
+             {
+                kernel->machine->ReadMem(address++,1,(int *)&setbuffer[i]);
+             }
+    	      Thread *th = new Thread ("ExecSysCall");
+    	      int newPID = kernel->ThreadId;
+    	      th->space = new AddrSpace(th->space);
+    	      std::cout<<"Current name is. in exception.cc"<<th->getName();
+    	      th->space->Load(th->getName());
+    	      char buffer[1024];
+    	      th->Fork((VoidFunctionPtr) execFunction,  (char*)buffer);
+    	      
+    	      kernel->currentThread->Finish();
+	   {
+            /* set previous programm counter (debugging only)*/
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+
+            /* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+
+            /* set next programm counter for brach execution */
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+        }
+        kernel->machine->WriteRegister(2, newPID);
         return;
         ASSERTNOTREACHED();
 		}
@@ -183,4 +221,16 @@ void threadFunction(Thread* currentThread)
         kernel->machine->Run();
         
 }
+
+void execFunction(void *file_exec)
+{
+    AddrSpace *space = new AddrSpace;
+    ASSERT(space != (AddrSpace *)NULL);
+    if (space->Load((char*)file_exec)) {  // load the program into the space
+        space->Execute();         // run the program
+    }
+    ASSERTNOTREACHED();
+}
+
+
 

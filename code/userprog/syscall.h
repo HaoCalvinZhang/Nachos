@@ -184,6 +184,7 @@ void ThreadExit(int ExitCode);
 
 void threadFunction(Thread* currentThread);	
 
+void execFunction(void *file_exec);
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */
