@@ -180,7 +180,9 @@ int ThreadJoin(ThreadId id);
 /*
  * Deletes current thread and returns ExitCode to every waiting lokal thread.
  */
-void ThreadExit(int ExitCode);	
+void ThreadExit(int ExitCode);
+
+void threadFunction(Thread* currentThread);	
 
 #endif /* IN_ASM */
 

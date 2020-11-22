@@ -102,9 +102,10 @@ ExceptionHandler(ExceptionType which)
 	DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 
  {
+        //SpaceId id= SysFork();
         
         std::cout<<"Fork ..... Started. in exception.cc!\n";
- 	    Thread *th = new Thread ("ForkSysCall");
+ 	Thread *th = new Thread ("ForkSysCall");
     	th->space = new AddrSpace(th->space);
     	//th->space = new AddrSpace(th->space);
     	//AddrSpace *space = new AddrSpace(th->space);
@@ -115,8 +116,9 @@ ExceptionHandler(ExceptionType which)
     	std::cout<<"Get num page. in exception.cc: "<<th->space->getPageTable()<<"\n";
     	SpaceId id = SpaceId(th);
         kernel->machine->WriteRegister(2, int(id));
-        //STILL need to complete restore state
-        
+        th->Fork((VoidFunctionPtr) threadFunction, (void *) 1);
+        int newPID = kernel->ThreadId;
+    	std::cout<<"Current PID is: "<<newPID<<"\n";
         std::cout<<"Fork .....Finished. in exception.cc !\n";
                 /* Modify return point */
         {
@@ -129,7 +131,7 @@ ExceptionHandler(ExceptionType which)
             /* set next programm counter for brach execution */
             kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
         }
-        return;
+        return ;
         ASSERTNOTREACHED();
     }
 	break;
@@ -139,7 +141,7 @@ ExceptionHandler(ExceptionType which)
 		{   
             std::cout<<"Exit. in exception.cc\n";
             std::cout<<"register 4: "<<(int)kernel->machine->ReadRegister(4)<<"\n";
-	        kernel->currentThread->Finish();
+	    kernel->currentThread->Finish();
 	   {
             /* set previous programm counter (debugging only)*/
             kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
@@ -171,4 +173,14 @@ ExceptionHandler(ExceptionType which)
     ASSERTNOTREACHED();
 }
 
+
+void threadFunction(Thread* currentThread)
+{
+        std::cout<<"ThreadFunction. in exception.cc\n";
+        DEBUG(dbgSys, "Thread forked ");
+        currentThread->RestoreUserState();
+        currentThread->SaveUserState();
+        kernel->machine->Run();
+        
+}
 

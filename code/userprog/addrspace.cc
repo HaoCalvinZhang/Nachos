@@ -344,8 +344,9 @@ AddrSpace::getPageEntry(int pageFaultPhysicalNum) {
 
 //your code goes here to add something into the copy constructor//
 AddrSpace::AddrSpace(const AddrSpace* copiedItem) { // copy constructor
-	std::cout<<"Copy constructor ..... in addrspace.cc !\n";
+	std::cout<<"Copy constructor ..... !\n";
 	numPages = getNumPage();
+
 	ASSERT(numPages <= NumPhysPages);		
 	pageTable = new TranslationEntry[NumPhysPages];
 	for (int i = 0; i < numPages; i++) {
